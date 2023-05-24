@@ -73,7 +73,7 @@ public class AuthzHelperTest {
         List<RoleMember> originalRoleMembers = convertMembersToRoleMembers(originalRoleMembersList);
         List<RoleMember> removeRoleMembers = convertMembersToRoleMembers(removeRoleMembersList);
 
-        AuthzHelper.removeRoleMembers(originalRoleMembers, removeRoleMembers);
+        AuthzHelper.removeRoleMembers(originalRoleMembers, removeRoleMembers, true);
 
         //remove case
         for (RoleMember orgMember : originalRoleMembers) {
@@ -88,13 +88,59 @@ public class AuthzHelperTest {
     }
 
     @Test
+    public void testRemoveRoleMembersCheckNameOnlyDisabled() {
+
+        RoleMember member1 = new RoleMember().setMemberName("user1");
+        RoleMember member2 = new RoleMember().setMemberName("user2").setExpiration(Timestamp.fromMillis(1000));
+        RoleMember newMember2 = new RoleMember().setMemberName("user2").setExpiration(Timestamp.fromMillis(2000));
+        RoleMember member3 = new RoleMember().setMemberName("user3");
+        RoleMember member4 = new RoleMember().setMemberName("user4");
+
+        List<RoleMember> originalRoleMembers = new ArrayList<>() {
+            {
+                add(member1);
+                add(member2);
+                add(member3);
+            }
+        };
+        List<RoleMember> currentRoleMembers = new ArrayList<>() {
+            {
+                add(member1);
+                add(newMember2);
+                add(member4);
+            }
+        };
+        List<RoleMember> delMembers = new ArrayList<>() {
+            {
+                addAll(originalRoleMembers);
+            }
+        };
+        List<RoleMember> newMembers = new ArrayList<>() {
+            {
+                add(newMember2);
+                add(member4);            }
+        };
+        List<RoleMember> removeRoleMembers = new ArrayList<>() {
+            {
+                add(member3);
+            }
+        };
+
+        AuthzHelper.removeRoleMembers(delMembers, currentRoleMembers, true);
+        AuthzHelper.removeRoleMembers(currentRoleMembers, originalRoleMembers, false);
+
+        assertEquals(newMembers, currentRoleMembers);
+        assertEquals(removeRoleMembers, delMembers);
+    }
+
+    @Test
     public void testRemoveRoleMembersInvalidInput() {
         List<RoleMember> list = Collections.singletonList(new RoleMember().setMemberName("member1"));
-        AuthzHelper.removeRoleMembers(list, null);
+        AuthzHelper.removeRoleMembers(list, null, true);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");
 
-        AuthzHelper.removeRoleMembers(null, list);
+        AuthzHelper.removeRoleMembers(null, list, true);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");
     }

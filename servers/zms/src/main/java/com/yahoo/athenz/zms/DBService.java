@@ -833,19 +833,22 @@ public class DBService implements RolesProvider {
 
         // first we need to retrieve the current set of members
 
-        List<RoleMember> originalMembers = originalRole.getRoleMembers();
+        List<RoleMember> originalMembers = originalRole.getRoleMembers(); // [m,n,r] n.expiration= 01/01/22
         List<RoleMember> curMembers = (null == originalMembers) ? new ArrayList<>() : new ArrayList<>(originalMembers);
-        List<RoleMember> delMembers = new ArrayList<>(curMembers);
-        ArrayList<RoleMember> newMembers = (null == roleMembers) ? new ArrayList<>() : new ArrayList<>(roleMembers);
+        List<RoleMember> delMembers = new ArrayList<>(curMembers); // [m,n,r]
+        ArrayList<RoleMember> newMembers = (null == roleMembers) ? new ArrayList<>() : new ArrayList<>(roleMembers); /// [m,n,d] n.expiration= 01/01/23
 
         // remove current members from new members
 
-        AuthzHelper.removeRoleMembers(newMembers, curMembers);
+        AuthzHelper.removeRoleMembers(newMembers, curMembers, false); // [d, n]
 
         // remove new members from current members
         // which leaves the deleted members.
 
-        AuthzHelper.removeRoleMembers(delMembers, roleMembers);
+        AuthzHelper.removeRoleMembers(delMembers, roleMembers, true); // [r]
+
+        // [n]
+
 
         if (!ignoreDeletes) {
             for (RoleMember member : delMembers) {
